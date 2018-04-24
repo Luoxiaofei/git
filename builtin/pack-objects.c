@@ -1551,7 +1551,8 @@ static void check_object(struct object_entry *entry)
 		unuse_pack(&w_curs);
 	}
 
-	oe_set_type(entry, oid_object_info(&entry->idx.oid, &canonical_size));
+	oe_set_type(entry,
+		    oid_object_info(the_repository, &entry->idx.oid, &canonical_size));
 	if (entry->type_valid) {
 		SET_SIZE(entry, canonical_size);
 	} else {
@@ -1616,14 +1617,15 @@ static void drop_reused_delta(struct object_entry *entry)
 
 	oi.sizep = &size;
 	oi.typep = &type;
-	if (packed_object_info(IN_PACK(entry), entry->in_pack_offset, &oi) < 0) {
+	if (packed_object_info(the_repository, IN_PACK(entry), entry->in_pack_offset, &oi) < 0) {
 		/*
 		 * We failed to get the info from this pack for some reason;
 		 * fall back to sha1_object_info, which may find another copy.
 		 * And if that fails, the error will be recorded in oe_type(entry)
 		 * and dealt with in prepare_pack().
 		 */
-		oe_set_type(entry, oid_object_info(&entry->idx.oid, &size));
+		oe_set_type(entry,
+			    oid_object_info(the_repository, &entry->idx.oid, &size));
 	} else {
 		oe_set_type(entry, type);
 	}
@@ -1889,7 +1891,7 @@ unsigned long oe_get_size_slow(struct packing_data *pack,
 
 	if (e->type_ != OBJ_OFS_DELTA && e->type_ != OBJ_REF_DELTA) {
 		read_lock();
-		if (oid_object_info(&e->idx.oid, &size) < 0)
+		if (oid_object_info(the_repository, &e->idx.oid, &size) < 0)
 			die(_("unable to get size of %s"),
 			    oid_to_hex(&e->idx.oid));
 		read_unlock();
@@ -2817,7 +2819,7 @@ static void add_objects_in_unpacked_packs(struct rev_info *revs)
 static int add_loose_object(const struct object_id *oid, const char *path,
 			    void *data)
 {
-	enum object_type type = oid_object_info(oid, NULL);
+	enum object_type type = oid_object_info(the_repository, oid, NULL);
 
 	if (type < 0) {
 		warning("loose object at %s could not be examined", path);

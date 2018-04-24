@@ -75,7 +75,8 @@ void bitmap_writer_build_type_index(struct packing_data *to_pack,
 			break;
 
 		default:
-			real_type = oid_object_info(&entry->idx.oid, NULL);
+			real_type = oid_object_info(the_repository,
+						    &entry->idx.oid, NULL);
 			break;
 		}
 
